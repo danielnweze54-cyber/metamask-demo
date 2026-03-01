@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MetaMask Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial; text-align:center; padding-top:80px; background:#0f172a; color:white;">
+
+  <h1>MetaMask Connection Demo</h1>
+  <button onclick="connectWallet()" style="padding:12px 20px; font-size:16px; cursor:pointer;">
+    Connect Wallet
+  </button>
+
+  <p id="walletAddress"></p>
+
+  <script>
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('walletAddress').innerText =
+            "Connected: " + accounts[0];
+        } catch (error) {
+          alert("Connection rejected.");
+        }
+      } else {
+        alert("MetaMask is not installed.");
+      }
+    }
+  </script>
+
+</body>
+</html>
