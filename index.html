@@ -1,33 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>MetaMask Demo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial; text-align:center; padding-top:80px; background:#0f172a; color:white;">
-
-  <h1>MetaMask Connection Demo</h1>
-  <button onclick="connectWallet()" style="padding:12px 20px; font-size:16px; cursor:pointer;">
-    Connect Wallet
-  </button>
-
-  <p id="walletAddress"></p>
-
-  <script>
-    async function connectWallet() {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('walletAddress').innerText =
-            "Connected: " + accounts[0];
-        } catch (error) {
-          alert("Connection rejected.");
-        }
-      } else {
-        alert("MetaMask is not installed.");
-      }
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding-top: 80px;
+      background: #0f172a;
+      color: white;
     }
-  </script>
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background: #22c55e;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    p {
+      margin-top: 20px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+<h1>MetaMask Connection Demo</h1>
+<button id="connectButton">Connect Wallet</button>
+<p id="walletAddress">Wallet Address: Not connected</p>
+<p id="balance">ETH Balance: -</p>
+
+<script>
+const connectButton = document.getElementById('connectButton');
+const walletAddress = document.getElementById('walletAddress');
+const balance = document.getElementById('balance');
+
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    alert('Please open this site inside the MetaMask browser.');
+    return;
+  }
+
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const address = accounts[0];
+    walletAddress.innerText = 'Wallet Address: ' + address;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const bal = await provider.getBalance(address);
+    const ethBalance = ethers.formatEther(bal);
+    balance.innerText = 'ETH Balance: ' + ethBalance;
+  } catch (err) {
+    console.error(err);
+    alert('Connection rejected!');
+  }
+}
+
+connectButton.addEventListener('click', connectWallet);
+</script>
 
 </body>
 </html>
