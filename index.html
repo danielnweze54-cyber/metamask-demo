@@ -1,70 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>MetaMask Demo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      padding-top: 80px;
-      background: #0f172a;
-      color: white;
-    }
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      background: #22c55e;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    p {
-      margin-top: 20px;
-      word-break: break-all;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Web3 Wallet Connect</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+
+.card{
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:35px;
+  border-radius:20px;
+  width:92%;
+  max-width:420px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(0,0,0,0.5);
+}
+
+.logo{
+  width:60px;
+  margin-bottom:15px;
+}
+
+h1{
+  margin:10px 0;
+  font-size:24px;
+}
+
+.sub{
+  color:#94a3b8;
+  font-size:14px;
+}
+
+button{
+  background: linear-gradient(90deg,#22c55e,#16a34a);
+  border:none;
+  padding:14px;
+  color:white;
+  font-size:16px;
+  border-radius:12px;
+  cursor:pointer;
+  margin-top:20px;
+  width:100%;
+  font-weight:bold;
+}
+
+button:hover{ opacity:0.9; }
+
+.info{
+  margin-top:25px;
+  font-size:14px;
+  background: rgba(0,0,0,0.35);
+  padding:18px;
+  border-radius:12px;
+  word-wrap:break-word;
+  text-align:left;
+}
+
+.label{
+  color:#94a3b8;
+  font-size:12px;
+  margin-top:12px;
+}
+
+.value{
+  font-size:14px;
+  margin-top:4px;
+}
+
+.copyBtn{
+  margin-top:8px;
+  background:#334155;
+  padding:8px;
+  border-radius:8px;
+  font-size:12px;
+  cursor:pointer;
+  display:inline-block;
+}
+
+.network{
+  margin-top:18px;
+  font-size:13px;
+  color:#38bdf8;
+  text-align:center;
+}
+</style>
 </head>
+
 <body>
 
-<h1>MetaMask Connection Demo</h1>
-<button id="connectButton">Connect Wallet</button>
-<p id="walletAddress">Wallet Address: Not connected</p>
-<p id="balance">ETH Balance: -</p>
+<div class="card">
+  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg">
+  <h1>Wallet Connection</h1>
+  <div class="sub">Connect your crypto wallet securely</div>
+
+  <button onclick="connectWallet()">Connect MetaMask</button>
+
+  <div class="info">
+    <div class="label">Wallet Address</div>
+    <div id="address" class="value">Not Connected</div>
+    <div id="copyWrap" style="display:none">
+      <div class="copyBtn" onclick="copyAddress()">📋 Copy Address</div>
+    </div>
+
+    <div class="label">ETH Balance</div>
+    <div id="balance" class="value">0.0000 ETH</div>
+
+    <div class="label">Network</div>
+    <div id="network" class="value">Unknown</div>
+  </div>
+
+  <div class="network">🔒 Secure Web3 Connection</div>
+</div>
 
 <script>
-const connectButton = document.getElementById('connectButton');
-const walletAddress = document.getElementById('walletAddress');
-const balance = document.getElementById('balance');
+let fullAddress = "";
 
-async function connectWallet() {
-  if (typeof window.ethereum === 'undefined') {
-    alert('Please open this site inside the MetaMask browser.');
-    return;
-  }
+function shortAddress(addr){
+  return addr.slice(0,6) + "..." + addr.slice(-4);
+}
 
-  try {
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    const address = accounts[0];
-    walletAddress.innerText = 'Wallet Address: ' + address;
+async function connectWallet(){
+  if(typeof window.ethereum !== 'undefined'){
+    const accounts = await ethereum.request({method:'eth_requestAccounts'});
+    fullAddress = accounts[0];
+    document.getElementById('address').innerText = shortAddress(fullAddress);
+    document.getElementById('copyWrap').style.display = "block";
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const bal = await provider.getBalance(address);
-    const ethBalance = ethers.formatEther(bal);
-    balance.innerText = 'ETH Balance: ' + ethBalance;
-  } catch (err) {
-    console.error(err);
-    alert('Connection rejected!');
+    const balance = await ethereum.request({
+      method:'eth_getBalance',
+      params:[accounts[0],'latest']
+    });
+
+    const eth = parseInt(balance,16)/1e18;
+    document.getElementById('balance').innerText = eth.toFixed(4) + " ETH";
+
+    const chainId = await ethereum.request({ method: 'eth_chainId' });
+    const networks = {
+      "0x1":"Ethereum Mainnet",
+      "0x38":"BNB Smart Chain",
+      "0x89":"Polygon",
+      "0xa":"Optimism",
+      "0xa4b1":"Arbitrum"
+    };
+    document.getElementById('network').innerText = networks[chainId] || "Unknown Network";
+
+  }else{
+    alert("MetaMask not installed");
   }
 }
 
-connectButton.addEventListener('click', connectWallet);
+function copyAddress(){
+  navigator.clipboard.writeText(fullAddress);
+  alert("Address Copied");
+}
 </script>
 
 </body>
